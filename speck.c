@@ -26,7 +26,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define RR(x, y, k) (y ^= x, y = ROR(y, 3), x ^= k, x -= y, x = ROL(x, 8))
 #endif
 
-void speck_expand(SPECK_TYPE const K[static 4], SPECK_TYPE S[static SPECK_ROUNDS])
+void speck_expand(SPECK_TYPE const K[static SPECK_KEY_LEN], SPECK_TYPE S[static SPECK_ROUNDS])
 {
   SPECK_TYPE i, b = K[0];
   SPECK_TYPE a[SPECK_KEY_LEN - 1];
