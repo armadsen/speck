@@ -62,6 +62,47 @@ void speck_decrypt(SPECK_TYPE const ct[static 2], SPECK_TYPE pt[static 2], SPECK
   }
 }
 
+void speck_encrypt_combined(SPECK_TYPE const pt[static 2], SPECK_TYPE ct[static 2], SPECK_TYPE const K[static SPECK_KEY_LEN])
+{
+  SPECK_TYPE i, b = K[0];
+  SPECK_TYPE a[SPECK_KEY_LEN - 1];
+  ct[0]=pt[0]; ct[1]=pt[1];
+
+  for (i = 0; i < (SPECK_KEY_LEN - 1); i++)
+  {
+    a[i] = K[i + 1];
+  }
+
+  R(ct[1], ct[0], b);
+  for(i = 0; i < SPECK_ROUNDS - 1; i++){
+    R(a[i % (SPECK_KEY_LEN - 1)], b, i);
+    R(ct[1], ct[0], b);
+  }
+}
+
+void speck_decrypt_combined(SPECK_TYPE const ct[static 2], SPECK_TYPE pt[static 2], SPECK_TYPE const K[static SPECK_KEY_LEN])
+{
+  int i;
+  SPECK_TYPE b = K[0];
+  SPECK_TYPE a[SPECK_KEY_LEN - 1];
+  pt[0]=ct[0]; pt[1]=ct[1];
+
+  for (i = 0; i < (SPECK_KEY_LEN - 1); i++)
+  {
+    a[i] = K[i + 1];
+  }
+
+  for (i = 0; i < SPECK_ROUNDS - 1; i++)
+  {
+    R(a[i % (SPECK_KEY_LEN - 1)], b, i);
+  }
+
+  for(i = 0; i < SPECK_ROUNDS; i++){
+    RR(pt[1], pt[0], b);
+    RR(a[((SPECK_ROUNDS - 2) - i) % (SPECK_KEY_LEN - 1)], b, ((SPECK_ROUNDS - 2) - i));
+  }
+}
+
 #ifdef TEST
 
 #include <string.h>
@@ -92,12 +133,20 @@ int main(int argc, char** argv)
 
   speck_expand(key, exp);
 
+#ifdef TEST_COMBINED
+  speck_encrypt_combined(plain, buffer, key);
+#else
   speck_encrypt(plain, buffer, exp);
+#endif
   if (memcmp(buffer, enc, sizeof(enc))) {
     printf("encryption failed\n");
     return 1;
   }
+#ifdef TEST_COMBINED
+  speck_decrypt_combined(enc, buffer, key);
+#else
   speck_decrypt(enc, buffer, exp);
+#endif
   if (memcmp(buffer, plain, sizeof(enc))) {
     printf("decryption failed\n");
     return 1;
