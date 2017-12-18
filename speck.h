@@ -28,7 +28,7 @@ extern "C" {
 /*
  * define speck type to use (one of SPECK_32_64, SPECK_64_128, SPECK_128_256)
  */
-#define SPECK_32_64
+#define SPECK_64_128
 
 #ifdef SPECK_32_64
 #define SPECK_TYPE uint16_t
